@@ -16,7 +16,7 @@ NUMSTARS = 150
 
 
 def init_star():
-    "creates new star values"      n      
+    "creates new star values"   
     dir = random.randrange(100000)
     velmult = random.random()*.06+.04
     rotspeed= (random.random()*0.001)
