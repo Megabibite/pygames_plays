@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js canvas - particles - sprites</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			a {
+				color: #0078ff;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="https://threejs.org/build/three.js"></script>
+
+		<script src="https://threejs.org/examples/js/renderers/Projector.js"></script>
+		<script src="https://threejs.org/examples/js/renderers/CanvasRenderer.js"></script>
+
+		<script src="https://threejs.org/examples/js/libs/stats.min.js"></script>
+		<script src="https://threejs.org/examples/js/libs/tween.min.js"></script>
+		<script src="./callbacks.js"></script>
+
+		<script>
+
+			var container, stats;
+			var camera, scene, renderer, particle;
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var nbpart=1
+
+			class mparticle {
+  			constructor(material) {
+					this.sprite = new THREE.Sprite( material );
+					this.speed = new THREE.Vector3( Math.random()*2-1, Math.random()*2-1, Math.random()*2-1 );
+					this.rotspeed= 2*Math.PI* (Math.random()*2-1);
+
+					this.sprite.position.set( 1000, 0, 0 );
+					this.sprite.scale.x = this.sprite.scale.y = Math.random() * 32 + 16;
+  			}
+				update(center,speed_factor,rotaxis,rotspeed_factor) {
+					//var npos=new THREE.Vector3(0);
+					//THREE.Vector3.rotateZ(npos, this.sprite.position, center, rotspeed_factor*this.rotspeed);
+					//this.sprite.rotateZ(rotspeed_factor*this.rotspeed)
+					console.log(this.sprite.position,rotaxis,rotspeed_factor*this.rotspeed)
+					this.sprite.rotateOnWorldAxis(rotaxis,rotspeed_factor*this.rotspeed)
+					console.log(this.sprite.position)
+					//this.sprite.position.add (  this.speed.multiply(speed_factor) );
+					//this.sprite.position.set(npos)
+				}
+			}
+			plist = init();
+			animate(plist);
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 5000 );
+				camera.position.z = 1000;
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0x000040 );
+
+				var material = new THREE.SpriteMaterial( {
+					map: new THREE.CanvasTexture( generateSprite() ),
+					blending: THREE.AdditiveBlending
+				} );
+
+				plist=[];
+				for ( var i = 0; i < nbpart; i++ ) {
+
+					particle = new mparticle( material );
+
+					//initParticle( particle, i * 10 );
+
+					scene.add( particle.sprite );
+					plist.push(particle);
+				}
+
+				renderer = new THREE.CanvasRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+				return(plist);
+
+			}
+
+
+
+			function generateSprite() {
+
+				var canvas = document.createElement( 'canvas' );
+				canvas.width = 16;
+				canvas.height = 16;
+
+				var context = canvas.getContext( '2d' );
+				var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
+				gradient.addColorStop( 0, 'rgba(255,255,255,1)' );
+				gradient.addColorStop( 0.2, 'rgba(0,255,255,1)' );
+				gradient.addColorStop( 0.4, 'rgba(0,0,64,1)' );
+				gradient.addColorStop( 1, 'rgba(0,0,0,1)' );
+
+				context.fillStyle = gradient;
+				context.fillRect( 0, 0, canvas.width, canvas.height );
+
+				return canvas;
+
+			}
+
+			function initParticle( particle, delay ) {
+
+				var particle = this instanceof THREE.Sprite ? this : particle;
+				var delay = delay !== undefined ? delay : 0;
+
+				particle.position.set( 0, 0, 0 );
+				particle.scale.x = particle.scale.y = Math.random() * 32 + 16;
+
+				new TWEEN.Tween( particle )
+					.delay( delay )
+					.to( {}, 10000 )
+					.onComplete( initParticle )
+					.start();
+
+				new TWEEN.Tween( particle.position )
+					.delay( delay )
+					.to( { x: Math.random() * 4000 - 2000, y: Math.random() * 1000 - 500, z: Math.random() * 4000 - 2000 }, 10000 )
+					.start();
+
+				new TWEEN.Tween( particle.scale )
+					.delay( delay )
+					.to( { x: 0.01, y: 0.01 }, 10000 )
+					.start();
+
+			}
+
+			//
+
+
+			//
+
+			function animate(pist) {
+
+				center=new THREE.Vector3(0);
+				speed_factor=new THREE.Vector3(1,1,0);
+				rotspeed_factor=0.1;
+				rotaxis=new THREE.Vector3( 0, 1, 1 );
+				requestAnimationFrame( animate );
+
+				render(plist,center,speed_factor,rotaxis,rotspeed_factor);
+				stats.update();
+
+			}
+
+			function render(plist,center,speed_factor,rotaxis,rotspeed_factor) {
+
+				pLen = plist.length;
+				for (i = 0; i < pLen; i++) {
+    			plist[i].update(center,speed_factor,rotaxis,rotspeed_factor);
+				}
+				//TWEEN.update();
+
+				camera.position.x += ( mouseX - camera.position.x ) * 0.05;
+				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+				camera.lookAt( scene.position );
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
