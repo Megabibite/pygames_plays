@@ -36,25 +36,49 @@
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
 
-			var nbpart=1
+			var nbpart=2000
+			//center=new THREE.Vector3(0);
+			var speed_factor=new THREE.Vector3(1,1,0);
+			var rotspeed_factor=0.001;
+			var max_x=max_y=1000
+			//rotaxis=new THREE.Vector3( 0, 1, 1 );
 
 			class mparticle {
   			constructor(material) {
 					this.sprite = new THREE.Sprite( material );
 					this.speed = new THREE.Vector3( Math.random()*2-1, Math.random()*2-1, Math.random()*2-1 );
+
 					this.rotspeed= 2*Math.PI* (Math.random()*2-1);
 
-					this.sprite.position.set( 1000, 0, 0 );
+					this.sprite.position.set( 0, 0, 0 );
 					this.sprite.scale.x = this.sprite.scale.y = Math.random() * 32 + 16;
+
+					this.group=new THREE.Group();
+					this.group.add(this.sprite)
+
   			}
-				update(center,speed_factor,rotaxis,rotspeed_factor) {
+				reset_initial_params()
+				{
+					this.speed.set( Math.random()*2-1, Math.random()*2-1, Math.random()*2-1 );
+					this.rotspeed= 2*Math.PI* (Math.random()*2-1);
+					this.sprite.position.set( 0, 0, 0 );
+					this.sprite.scale.x = this.sprite.scale.y = Math.random() * 32 + 16;
+				}
+				update() {
 					//var npos=new THREE.Vector3(0);
 					//THREE.Vector3.rotateZ(npos, this.sprite.position, center, rotspeed_factor*this.rotspeed);
-					//this.sprite.rotateZ(rotspeed_factor*this.rotspeed)
-					console.log(this.sprite.position,rotaxis,rotspeed_factor*this.rotspeed)
-					this.sprite.rotateOnWorldAxis(rotaxis,rotspeed_factor*this.rotspeed)
-					console.log(this.sprite.position)
-					//this.sprite.position.add (  this.speed.multiply(speed_factor) );
+					this.group.rotateZ(rotspeed_factor*this.rotspeed)
+					//console.log(this.sprite.position,rotaxis,rotspeed_factor*this.rotspeed)
+					//this.group.rotateOnWorldAxis(rotaxis,rotspeed_factor*this.rotspeed)
+					//console.log(this.sprite.position)
+					if ( (Math.abs(this.sprite.position.x) > max_x) || (Math.abs(this.sprite.position.y) > max_y)  )
+					{
+						this.reset_initial_params()
+					}
+					else {
+						this.sprite.position.add (  this.speed.multiply(speed_factor) );
+					}
+
 					//this.sprite.position.set(npos)
 				}
 			}
@@ -68,6 +92,8 @@
 
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 5000 );
 				camera.position.z = 1000;
+				camera.position.x = 10000;
+				camera.position.y = 10000;
 
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0x000040 );
@@ -84,7 +110,7 @@
 
 					//initParticle( particle, i * 10 );
 
-					scene.add( particle.sprite );
+					scene.add( particle.group );
 					plist.push(particle);
 				}
 
@@ -162,22 +188,20 @@
 
 			function animate(pist) {
 
-				center=new THREE.Vector3(0);
-				speed_factor=new THREE.Vector3(1,1,0);
-				rotspeed_factor=0.1;
-				rotaxis=new THREE.Vector3( 0, 1, 1 );
+
+
 				requestAnimationFrame( animate );
 
-				render(plist,center,speed_factor,rotaxis,rotspeed_factor);
+				render(plist);
 				stats.update();
 
 			}
 
-			function render(plist,center,speed_factor,rotaxis,rotspeed_factor) {
+			function render(plist) {
 
 				pLen = plist.length;
 				for (i = 0; i < pLen; i++) {
-    			plist[i].update(center,speed_factor,rotaxis,rotspeed_factor);
+    			plist[i].update();
 				}
 				//TWEEN.update();
 
