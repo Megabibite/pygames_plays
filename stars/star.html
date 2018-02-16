@@ -50,7 +50,7 @@
 
 					this.rotspeed= 2*Math.PI* (Math.random()*2-1);
 
-					this.sprite.position.set( 0, 0, 0 );
+					this.sprite.position.set( 0, 0, Math.random()*500-250 );
 					this.sprite.scale.x = this.sprite.scale.y = Math.random() * 32 + 16;
 
 					this.group=new THREE.Group();
@@ -144,7 +144,7 @@
 				var context = canvas.getContext( '2d' );
 				var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
 				gradient.addColorStop( 0, 'rgba(255,255,255,1)' );
-				gradient.addColorStop( 0.2, 'rgba(0,255,255,1)' );
+				gradient.addColorStop( 0.2, 'rgba(64,5,5,1)' );
 				gradient.addColorStop( 0.4, 'rgba(0,0,64,1)' );
 				gradient.addColorStop( 1, 'rgba(0,0,0,1)' );
 

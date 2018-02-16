@@ -54,15 +54,16 @@
 					blending: THREE.AdditiveBlending
 				} );
 
-				for ( var i = 0; i < 1000; i++ ) {
+				var froup=new THREE.Group();
+				for ( var i = 0; i < 5000; i++ ) {
 
-					particle = new THREE.Sprite( material );
+					var particle = new THREE.Sprite( material );
 
 					initParticle( particle, i * 10 );
 
-					scene.add( particle );
+					froup.add( particle );
 				}
-
+				scene.add( froup );
 				renderer = new THREE.CanvasRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
