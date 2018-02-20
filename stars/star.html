@@ -101,9 +101,12 @@
 					plist.push(particle)
 					geometry.vertices.push(particle.position)
 				}
-
-				points=new THREE.Points(geometry,new THREE.PointsMaterial( {size:5} ));
-				//points=new THREE.Points(geometry,material );
+				sprote = new THREE.TextureLoader().load( "textures/disk.png" );
+				materiol = new THREE.PointsMaterial( { size: 35, sizeAttenuation: false, map: sprote, alphaTest: 0.5, transparent: true } );
+				//materiol = new THREE.PointsMaterial( { size: 35, sizeAttenuation: false, map: sprote} );
+				//points=new THREE.Points(geometry,new THREE.PointsMaterial( {size:5} ));
+				materiol.color.setHSL( 1.0, 0.3, 0.7 );
+				points=new THREE.Points(geometry,materiol );
 				scene.add(points)
 				//renderer = new THREE.CanvasRenderer();
 				renderer = new THREE.WebGLRenderer();
