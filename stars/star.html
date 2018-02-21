@@ -22,26 +22,27 @@
 
 		<script src="https://threejs.org/examples/js/renderers/Projector.js"></script>
 		<script src="https://threejs.org/examples/js/renderers/CanvasRenderer.js"></script>
+		<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 
 		<script src="https://threejs.org/examples/js/libs/stats.min.js"></script>
 		<script src="https://threejs.org/examples/js/libs/tween.min.js"></script>
-		<script src="./callbacks.js"></script>
 
 		<script>
 
 			var container, stats;
-			var camera, scene, renderer, particle;
+			var camera, scene, renderer, particle,controls;
 			var mouseX = 0, mouseY = 0;
 
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
 
-			var nbpart=5000
+			var nbpart=10000
 			//center=new THREE.Vector3(0);
-			var speed_factor=new THREE.Vector3(10.01,10.01,0);
+			var speed_factor=new THREE.Vector3(5.01,5.01,0);
 			var rotspeed_factor=0.001;
-			var max_x=max_y=1000
+			var max_radius=1000;
 			//rotaxis=new THREE.Vector3( 0, 1, 1 );
+			var textureLoader = new THREE.TextureLoader();
 
 			class mparticle {
   			constructor(material) {
@@ -63,7 +64,7 @@
 				}
 				update() {
 
-					if ( (Math.abs(this.position.x) > max_x) || (Math.abs(this.position.y) > max_y)  )
+					if ( this.position.lengthSq> max_radius  )
 					{
 						this.reset_initial_params();
 					}
@@ -85,16 +86,14 @@
 
 				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 5000 );
 				camera.position.z = 1000;
-				camera.position.x = 10000;
-				camera.position.y = 10000;
+				camera.position.x = 000;
+				camera.position.y = 0;
+				//camera.rotation.x = Math.PI /2;
 
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0x000040 );
-
-				var material = new THREE.SpriteMaterial( {
-					map: new THREE.CanvasTexture( generateSprite() ),
-					blending: THREE.AdditiveBlending
-				} );
+				var axesHelper = new THREE.AxesHelper( 5000 );
+				//scene.add( axesHelper );
 
 				geometry = new THREE.Geometry()
 
@@ -105,10 +104,12 @@
 					plist.push(particle)
 					geometry.vertices.push(particle.position)
 				}
-				sprote = new THREE.TextureLoader().load( "textures/disk.png" );
-				materiol = new THREE.PointsMaterial( {  size: 35,sizeAttenuation: false, map: new THREE.CanvasTexture( generateSprite() ), blending: THREE.AdditiveBlending,transparent:true ,depthWrite: false} );
-				//materiol = new THREE.PointsMaterial( { size: 35, sizeAttenuation: false, map: sprote} );
-				//points=new THREE.Points(geometry,new THREE.PointsMaterial( {size:5} ));
+				var sprote = new THREE.TextureLoader().load( "textures/disk.png" );
+				var map3 = textureLoader.load( 'textures/lensflare0.png' );
+				var map4 = textureLoader.load( 'textures/lensflare0_alpha.png' );
+				var materiol = new THREE.PointsMaterial( {  size: 50,sizeAttenuation: true, map: map4, blending: THREE.AdditiveBlending,transparent:true ,depthWrite: false} );
+				//materiol = new THREE.PointsMaterial( {  size: 5} );
+
 				//materiol.color.setHSL( 1.0, 0.3, 0.7 );
 				points=new THREE.Points(geometry,materiol );
 				scene.add(points)
@@ -121,50 +122,38 @@
 				stats = new Stats();
 				container.appendChild( stats.dom );
 
-				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+				// document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				// document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+				// document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+				//controls.addEventListener( 'change', render ); // remove when using animation loop
+				// enable animation loop when using damping or autorotation
+				//controls.enableDamping = true;
+				//controls.dampingFactor = 0.25;
+				//controls.enableZoom = false;
 
 				//
+				function onWindowResize() {
 
+				  windowHalfX = window.innerWidth / 2;
+				  windowHalfY = window.innerHeight / 2;
+
+				  camera.aspect = window.innerWidth / window.innerHeight;
+				  camera.updateProjectionMatrix();
+
+				  renderer.setSize( window.innerWidth, window.innerHeight );
+
+				}
 				window.addEventListener( 'resize', onWindowResize, false );
 				return(plist);
 
 			}
 
-
-
-			function generateSprite() {
-
-				var canvas = document.createElement( 'canvas' );
-				canvas.width = 16;
-				canvas.height = 16;
-
-				var context = canvas.getContext( '2d' );
-				var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
-				gradient.addColorStop( 0, 'rgba(255,255,255,1)' );
-				gradient.addColorStop( 0.2, 'rgba(64,5,5,1)' );
-				gradient.addColorStop( 0.4, 'rgba(0,0,64,1)' );
-				gradient.addColorStop( 1, 'rgba(0,0,0,1)' );
-
-				context.fillStyle = gradient;
-				context.fillRect( 0, 0, canvas.width, canvas.height );
-
-				return canvas;
-
-			}
-
-
-
 			function animate(pist) {
-
-
-
 				requestAnimationFrame( animate );
-
 				render(plist);
 				stats.update();
-
 			}
 
 			function render(plist) {
@@ -175,11 +164,10 @@
 					geometry.vertices[i]=(plist[i].position);
 				}
 				geometry.verticesNeedUpdate=true;
-
-				camera.position.x += ( mouseX - camera.position.x ) * 0.05;
-				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+				//camera.position.x += ( mouseX - camera.position.x ) * 0.05;
+				//camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
 				camera.lookAt( scene.position );
-
+				//camera.rotation.x = Math.PI/2;
 				renderer.render( scene, camera );
 
 			}
