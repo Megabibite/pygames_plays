@@ -38,24 +38,26 @@
 
 			var nbpart=5000
 			//center=new THREE.Vector3(0);
-			var speed_factor=new THREE.Vector3(1,1,0);
+			var speed_factor=new THREE.Vector3(10.01,10.01,0);
 			var rotspeed_factor=0.001;
 			var max_x=max_y=1000
 			//rotaxis=new THREE.Vector3( 0, 1, 1 );
 
 			class mparticle {
   			constructor(material) {
-					this.position= new THREE.Vector3(0, 0, Math.random()*500-250) ;
-					this.speed = new THREE.Vector3( Math.random()*2-1, Math.random()*2-1, Math.random()*2-1 );
+					this.position= new THREE.Vector3(Math.random()*500-250, Math.random()*500-250, Math.random()*500-250) ;
+					this.speed = new THREE.Vector3( Math.random()*2-1, Math.random()*2-1, Math.random()*2-1 ).multiply(speed_factor);
 
-					this.rotspeed= 2*Math.PI* (Math.random()*2-1);
+					this.rotspeed= 2*Math.PI* (Math.random()*2-1)*rotspeed_factor;
 					this.scale = Math.random() * 32 + 16;
+					this.quaternion = new THREE.Quaternion();
+					this.quaternion.setFromAxisAngle( new THREE.Vector3( 0, 0, 1 ), this.rotspeed );
 
   			}
 				reset_initial_params()
 				{
-					this.speed.set( Math.random()*2-1, Math.random()*2-1, Math.random()*2-1 );
-					this.rotspeed= 2*Math.PI* (Math.random()*2-1);
+					this.speed.set( Math.random()*2-1, Math.random()*2-1, Math.random()*2-1 ).multiply(speed_factor);
+					this.rotspeed= 2*Math.PI* (Math.random()*2-1)*rotspeed_factor;
 					this.position.set( 0, 0, Math.random()*500-250 );
 					this.scale = Math.random() * 32 + 16;
 				}
@@ -66,7 +68,9 @@
 						this.reset_initial_params();
 					}
 					else {
-						this.position.add (  this.speed.multiply(speed_factor) );
+						this.position.add (  this.speed );
+						this.position.applyQuaternion( this.quaternion );
+
 					}
 
 				}
@@ -102,10 +106,10 @@
 					geometry.vertices.push(particle.position)
 				}
 				sprote = new THREE.TextureLoader().load( "textures/disk.png" );
-				materiol = new THREE.PointsMaterial( { size: 35, sizeAttenuation: false, map: sprote, alphaTest: 0.5, transparent: true } );
+				materiol = new THREE.PointsMaterial( {  size: 35,sizeAttenuation: false, map: new THREE.CanvasTexture( generateSprite() ), blending: THREE.AdditiveBlending,transparent:true ,depthWrite: false} );
 				//materiol = new THREE.PointsMaterial( { size: 35, sizeAttenuation: false, map: sprote} );
 				//points=new THREE.Points(geometry,new THREE.PointsMaterial( {size:5} ));
-				materiol.color.setHSL( 1.0, 0.3, 0.7 );
+				//materiol.color.setHSL( 1.0, 0.3, 0.7 );
 				points=new THREE.Points(geometry,materiol );
 				scene.add(points)
 				//renderer = new THREE.CanvasRenderer();
