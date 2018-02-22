@@ -37,11 +37,11 @@
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
 
-			var nbpart=10000
+			var nbpart=100
 			//center=new THREE.Vector3(0);
-			var speed_factor=new THREE.Vector3(5.01,5.01,0);
-			var rotspeed_factor=0.001;
-			var max_radius=1000;
+			var speed_factor=new THREE.Vector3(5.01,5.01,0).multiplyScalar(10);
+			var rotspeed_factor=0.01;
+			var max_radius=500;
 			//rotaxis=new THREE.Vector3( 0, 1, 1 );
 			var textureLoader = new THREE.TextureLoader();
 
@@ -63,7 +63,7 @@
 					this.speed.set( Math.random()*2-1, Math.random()*2-1, Math.random()*2-1 ).multiply(speed_factor);
 					this.rotspeed= 2*Math.PI* (Math.random()*2-1)*rotspeed_factor;
 					this.position.set( Math.random()*500-250, Math.random()*500-250, d3.randomNormal(0,100)() );
-					this.color.set(0.2,Math.random(),Math.random());
+					this.color.setHSL(Math.random()/2+0.5,1,0.7);
 					this.quaternion.setFromAxisAngle( new THREE.Vector3( 0, 0, 1 ), this.rotspeed );
 				}
 				update() {
@@ -89,7 +89,7 @@
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
-				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 5000 );
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
 				camera.position.z = 2000;
 				camera.position.x = 2000;
 				camera.position.y = 0;
@@ -107,22 +107,24 @@
 				for ( var i = 0; i < nbpart; i++ ) {
 
 					particle = new mparticle();
-					plist.push(particle)
-					geometry.vertices.push(particle.position)
-					geometry.colors.push(particle.color)
+					plist.push(particle);
+					geometry.vertices.push(particle.position);
+					geometry.colors.push(particle.color);
 				}
 				var sprote = new THREE.TextureLoader().load( "textures/disk.png" );
 				var map3 = textureLoader.load( 'textures/lensflare0.png' );
 				var map4 = textureLoader.load( 'textures/lensflare0_alpha.png' );
 				var map2 = textureLoader.load( 'textures/lensflare0_alpha.png' );
-				var materiol = new THREE.PointsMaterial( {  size: 50,sizeAttenuation: true, map: map2, blending: THREE.NormalBlending,transparent:true ,depthWrite: false} );
+				//var materiol = new THREE.PointsMaterial( {  size: 50,sizeAttenuation: true, map: map2, blending: THREE.AdditiveBlending,transparent:true ,depthWrite: false,vertexColors: THREE.VertexColors} );
+				var materiol = new THREE.PointsMaterial( {  size: 1,vertexColors: THREE.VertexColors} );
 				//materiol = new THREE.PointsMaterial( {  size: 5} );
 
 				//materiol.color.setHSL( 1.0, 0.3, 0.7 );
 				points=new THREE.Points(geometry,materiol );
 				scene.add(points)
 				//renderer = new THREE.CanvasRenderer();
-				renderer = new THREE.WebGLRenderer();
+				renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
+				renderer.autoClearColor = false;
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
@@ -135,7 +137,7 @@
 				// document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
 
-				//controls.addEventListener( 'change', render ); // remove when using animation loop
+				//controls.addEventListener( 'change', renderer.clear(true,true,true) ); // remove when using animation loop
 				// enable animation loop when using damping or autorotation
 				//controls.enableDamping = true;
 				//controls.dampingFactor = 0.25;
