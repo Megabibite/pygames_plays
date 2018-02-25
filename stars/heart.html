@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js canvas - particles - sprites</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			a {
+				color: #0078ff;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="https://threejs.org/build/three.js"></script>
+
+		<script src="https://threejs.org/examples/js/renderers/Projector.js"></script>
+		<script src="https://threejs.org/examples/js/renderers/CanvasRenderer.js"></script>
+		<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+
+		<script src="https://threejs.org/examples/js/libs/stats.min.js"></script>
+		<script src="https://threejs.org/examples/js/libs/tween.min.js"></script>
+		<script src="https://d3js.org/d3-random.v1.min.js"></script>
+
+		<script>
+
+			var container, stats;
+			var camera, scene, renderer, particle,controls;
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var nbpart=10000;
+			//center=new THREE.Vector3(0);
+			var speed_factor=new THREE.Vector3(5.01,5.01,0).multiplyScalar(1);
+			var rotspeed_factor=0.000001;
+			var max_radius=500;
+			//rotaxis=new THREE.Vector3( 0, 1, 1 );
+			var textureLoader = new THREE.TextureLoader();
+
+			class mparticle {
+  			constructor(material) {
+					this.position= new THREE.Vector3() ;
+					this.speed = new THREE.Vector3( );
+					this.color = new THREE.Color();
+					this.direction=0.0
+					this.rotspeed= 0.0;
+					this.scale = 0.0;
+					this.quaternion = new THREE.Quaternion();
+
+					this.reset_initial_params()
+
+  			}
+				reset_initial_params()
+				{
+					this.direction=Math.random()*2*Math.PI;
+					this.speed.set( Math.cos(this.direction), Math.sin(this.direction), Math.random()*2-1 ).multiply(speed_factor);
+					this.rotspeed= 2*Math.PI* (Math.random()*2-1)*rotspeed_factor;
+					//this.position.set( Math.random()*500-250, Math.random()*500-250, d3.randomNormal(0,100)() );
+					this.position.set(0,0,d3.randomNormal(0,500)());
+					this.color.setHSL(Math.random()/4+0.4,0.8,Math.random()/2+0.5);
+					this.quaternion.setFromAxisAngle( new THREE.Vector3( 0, 0, 1 ), this.rotspeed );
+				}
+				update() {
+
+					if ( this.position.lengthSq> max_radius  )
+					{
+						this.reset_initial_params();
+					}
+					else {
+
+						var r=this.position.length();
+						this.position.x=this.position.x-this.position.y*r*this.rotspeed;
+						this.position.y=this.position.y+this.position.x*r*this.rotspeed;
+						//this.position.applyQuaternion( this.quaternion );
+						this.position.add (  this.speed );
+
+					}
+
+				}
+			}
+			var plist = init();
+			animate(plist);
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = 2000;
+				camera.position.x = 2000;
+				camera.position.y = 0;
+
+				//camera.rotation.x = Math.PI /2;
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0x000040 );
+				var axesHelper = new THREE.AxesHelper( 5000 );
+				//scene.add( axesHelper );
+
+				geometry = new THREE.Geometry()
+
+				plist=[];
+				for ( var i = 0; i < nbpart; i++ ) {
+
+					particle = new mparticle();
+					plist.push(particle);
+					geometry.vertices.push(particle.position);
+					geometry.colors.push(particle.color);
+				}
+				var sprote = new THREE.TextureLoader().load( "textures/disk.png" );
+				var map3 = textureLoader.load( 'textures/lensflare0.png' );
+				var map4 = textureLoader.load( 'textures/lensflare0_alpha.png' );
+				var map2 = textureLoader.load( 'textures/red-roses-heart-PNG.png' );
+				var materiol = new THREE.PointsMaterial( {  size: 100,sizeAttenuation: true, map: map2, blending: THREE.AdditiveBlending,transparent:true ,depthWrite: false,vertexColors: THREE.VertexColors} );
+				//var materiol = new THREE.PointsMaterial( {  size: 1,vertexColors: THREE.VertexColors} );
+				//materiol = new THREE.PointsMaterial( {  size: 5} );
+
+				//materiol.color.setHSL( 1.0, 0.3, 0.7 );
+				points=new THREE.Points(geometry,materiol );
+				scene.add(points)
+				//renderer = new THREE.CanvasRenderer();
+				//renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
+				renderer = new THREE.WebGLRenderer();
+				//renderer.autoClearColor = false;
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				// document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				// document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+				// document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+				//controls.addEventListener( 'change', renderer.clear(true,true,true) ); // remove when using animation loop
+				// enable animation loop when using damping or autorotation
+				//controls.enableDamping = true;
+				//controls.dampingFactor = 0.25;
+				//controls.enableZoom = false;
+
+				//
+				function onWindowResize() {
+
+				  windowHalfX = window.innerWidth / 2;
+				  windowHalfY = window.innerHeight / 2;
+
+				  camera.aspect = window.innerWidth / window.innerHeight;
+				  camera.updateProjectionMatrix();
+
+				  renderer.setSize( window.innerWidth, window.innerHeight );
+
+				}
+				window.addEventListener( 'resize', onWindowResize, false );
+				return(plist);
+
+			}
+
+			function animate(pist) {
+				requestAnimationFrame( animate );
+				render(plist);
+				stats.update();
+			}
+
+			function render(plist) {
+
+				pLen = plist.length;
+				for (i = 0; i < pLen; i++) {
+    			plist[i].update();
+					geometry.vertices[i]=(plist[i].position);
+				}
+				geometry.verticesNeedUpdate=true;
+				//camera.position.x += ( mouseX - camera.position.x ) * 0.05;
+				//camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+				camera.up.set( 0, 0, 1 );
+				camera.lookAt( scene.position );
+				//camera.rotation.x = Math.PI/2;
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
