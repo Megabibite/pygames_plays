@@ -37,10 +37,10 @@
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
 
-			var nbpart=100
+			var nbpart=1000
 			//center=new THREE.Vector3(0);
 			var speed_factor=new THREE.Vector3(5.01,5.01,0).multiplyScalar(10);
-			var rotspeed_factor=0.01;
+			var rotspeed_factor=0.00001;
 			var max_radius=500;
 			//rotaxis=new THREE.Vector3( 0, 1, 1 );
 			var textureLoader = new THREE.TextureLoader();
@@ -50,7 +50,7 @@
 					this.position= new THREE.Vector3() ;
 					this.speed = new THREE.Vector3( );
 					this.color = new THREE.Color();
-
+					this.direction=0.0
 					this.rotspeed= 0.0;
 					this.scale = 0.0;
 					this.quaternion = new THREE.Quaternion();
@@ -60,10 +60,12 @@
   			}
 				reset_initial_params()
 				{
-					this.speed.set( Math.random()*2-1, Math.random()*2-1, Math.random()*2-1 ).multiply(speed_factor);
+					this.direction=Math.random()*2*Math.PI;
+					this.speed.set( Math.cos(this.direction), Math.sin(this.direction), Math.random()*2-1 ).multiply(speed_factor);
 					this.rotspeed= 2*Math.PI* (Math.random()*2-1)*rotspeed_factor;
-					this.position.set( Math.random()*500-250, Math.random()*500-250, d3.randomNormal(0,100)() );
-					this.color.setHSL(Math.random()/2+0.5,1,0.7);
+					//this.position.set( Math.random()*500-250, Math.random()*500-250, d3.randomNormal(0,100)() );
+					this.position.set(0,0,0);
+					this.color.setHSL(Math.random()/4+0.5,0.8,Math.random()/2+0.5);
 					this.quaternion.setFromAxisAngle( new THREE.Vector3( 0, 0, 1 ), this.rotspeed );
 				}
 				update() {
@@ -74,7 +76,10 @@
 					}
 					else {
 
-						this.position.applyQuaternion( this.quaternion );
+						var r=this.position.length();
+						this.position.x=this.position.x-this.position.y*r*this.rotspeed;
+						this.position.y=this.position.y+this.position.x*r*this.rotspeed;
+						//this.position.applyQuaternion( this.quaternion );
 						this.position.add (  this.speed );
 
 					}
@@ -99,7 +104,7 @@
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0x000040 );
 				var axesHelper = new THREE.AxesHelper( 5000 );
-				scene.add( axesHelper );
+				//scene.add( axesHelper );
 
 				geometry = new THREE.Geometry()
 
