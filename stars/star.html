@@ -37,10 +37,10 @@
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
 
-			var nbpart=1000
+			var nbpart=10000;
 			//center=new THREE.Vector3(0);
-			var speed_factor=new THREE.Vector3(5.01,5.01,0).multiplyScalar(10);
-			var rotspeed_factor=0.00001;
+			var speed_factor=new THREE.Vector3(5.01,5.01,0).multiplyScalar(1);
+			var rotspeed_factor=0.000001;
 			var max_radius=500;
 			//rotaxis=new THREE.Vector3( 0, 1, 1 );
 			var textureLoader = new THREE.TextureLoader();
@@ -64,8 +64,8 @@
 					this.speed.set( Math.cos(this.direction), Math.sin(this.direction), Math.random()*2-1 ).multiply(speed_factor);
 					this.rotspeed= 2*Math.PI* (Math.random()*2-1)*rotspeed_factor;
 					//this.position.set( Math.random()*500-250, Math.random()*500-250, d3.randomNormal(0,100)() );
-					this.position.set(0,0,0);
-					this.color.setHSL(Math.random()/4+0.5,0.8,Math.random()/2+0.5);
+					this.position.set(0,0,d3.randomNormal(0,500)());
+					this.color.setHSL(Math.random()/4+0.4,0.8,Math.random()/2+0.5);
 					this.quaternion.setFromAxisAngle( new THREE.Vector3( 0, 0, 1 ), this.rotspeed );
 				}
 				update() {
@@ -120,16 +120,17 @@
 				var map3 = textureLoader.load( 'textures/lensflare0.png' );
 				var map4 = textureLoader.load( 'textures/lensflare0_alpha.png' );
 				var map2 = textureLoader.load( 'textures/lensflare0_alpha.png' );
-				//var materiol = new THREE.PointsMaterial( {  size: 50,sizeAttenuation: true, map: map2, blending: THREE.AdditiveBlending,transparent:true ,depthWrite: false,vertexColors: THREE.VertexColors} );
-				var materiol = new THREE.PointsMaterial( {  size: 1,vertexColors: THREE.VertexColors} );
+				var materiol = new THREE.PointsMaterial( {  size: 100,sizeAttenuation: true, map: map2, blending: THREE.AdditiveBlending,transparent:true ,depthWrite: false,vertexColors: THREE.VertexColors} );
+				//var materiol = new THREE.PointsMaterial( {  size: 1,vertexColors: THREE.VertexColors} );
 				//materiol = new THREE.PointsMaterial( {  size: 5} );
 
 				//materiol.color.setHSL( 1.0, 0.3, 0.7 );
 				points=new THREE.Points(geometry,materiol );
 				scene.add(points)
 				//renderer = new THREE.CanvasRenderer();
-				renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
-				renderer.autoClearColor = false;
+				//renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
+				renderer = new THREE.WebGLRenderer();
+				//renderer.autoClearColor = false;
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
